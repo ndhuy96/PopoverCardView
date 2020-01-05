@@ -16,17 +16,16 @@ enum CardState {
 
 final class MainViewController: UIViewController {
 
-    // Variable determines the next state of the card expressing that the card starts and collapased
+    @IBOutlet weak var imageView: UIImageView!
+    
+    // Variable determines the next state of the card expressing that the card starts and collapsed
     private var nextState: CardState {
         return cardVisible ? .collapsed : .expanded
     }
     
     // Variable for card view controller
     private var cardViewController: CardViewController!
-    
-    // Variable for effects visual effect view
-    private var visualEffectView: UIVisualEffectView!
-    
+
     // Starting and end card heights will be determined later
     private var startCardHeight: CGFloat = 0
     private var endCardHeight: CGFloat = 0
@@ -42,6 +41,7 @@ final class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupCard()
+        hideCardViewWhenTappedAround()
     }
     
     private func setupCard() {
@@ -49,36 +49,17 @@ final class MainViewController: UIViewController {
         endCardHeight = self.view.frame.height * 0.8
         startCardHeight = self.view.frame.height * 0.3
         
-        // Add Visual Effects View
-        visualEffectView = UIVisualEffectView()
-        visualEffectView.frame = self.view.frame
-        self.view.addSubview(visualEffectView)
-        
         // Add CardViewController xib to the bottom of the screen, clipping bounds so that the corners can be rounded
         cardViewController = CardViewController(nibName: "CardViewController", bundle: nil)
         self.addChild(cardViewController)
         self.view.addSubview(cardViewController.view)
-        cardViewController.view.frame = CGRect(x: 0, y: self.view.frame.height - startCardHeight, width: self.view.bounds.width, height: endCardHeight)
+        cardViewController.view.frame = CGRect(x: 0, y: self.view.frame.height - startCardHeight,
+                                               width: self.view.bounds.width, height: endCardHeight)
         cardViewController.view.clipsToBounds = true
         
         // Add tap and pan recognizers
-        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleCardTap))
         let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handleCardPan))
-        
-        cardViewController.handleArea.addGestureRecognizer(tapGestureRecognizer)
-        cardViewController.handleArea.addGestureRecognizer(panGestureRecognizer)
-    }
-    
-    // Handle tap gesture recognizer
-    @objc
-    private func handleCardTap(_ recognzier: UITapGestureRecognizer) {
-        switch recognzier.state {
-        // Animate card when tap finishes
-        case .ended:
-            animateTransitionIfNeeded(state: nextState, duration: 0.5)
-        default:
-            break
-        }
+        cardViewController.view.addGestureRecognizer(panGestureRecognizer)
     }
     
     // Handle pan gesture recognizer
@@ -102,6 +83,26 @@ final class MainViewController: UIViewController {
         }
     }
     
+    private func hideCardViewWhenTappedAround() {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissCardView(_:)))
+        tap.cancelsTouchesInView = true
+        self.imageView.addGestureRecognizer(tap)
+        self.imageView.isUserInteractionEnabled = true
+    }
+    
+    @objc
+    private func dismissCardView(_ recognizer: UITapGestureRecognizer) {
+        switch recognizer.state {
+        // Animate card when tap finishes
+        case .ended:
+            if nextState == .collapsed {
+                animateTransitionIfNeeded(state: .collapsed, duration: 0.5)
+            }
+        default:
+            break
+        }
+    }
+    
     // Animate transistion function
     private func animateTransitionIfNeeded(state: CardState, duration: TimeInterval) {
         // Check if frame animator is empty
@@ -113,12 +114,9 @@ final class MainViewController: UIViewController {
                 case .expanded:
                     // If expanding set popover y to the ending height and blur background
                     self.cardViewController.view.frame.origin.y = self.view.frame.height - self.endCardHeight
-                    self.visualEffectView.effect = UIBlurEffect(style: .dark)
-                    
                 case .collapsed:
                     // If collapsed set popover y to the starting height and remove background blur
                     self.cardViewController.view.frame.origin.y = self.view.frame.height - self.startCardHeight
-                    self.visualEffectView.effect = nil
                 }
             }
             
