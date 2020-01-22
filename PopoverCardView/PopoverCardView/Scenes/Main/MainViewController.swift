@@ -16,17 +16,22 @@ enum CardState {
 
 final class MainViewController: UIViewController {
 
-    // Variable determines the next state of the card expressing that the card starts and collapased
+    @IBOutlet weak var imageView: UIImageView!
+    
+    // Variable determines the next state of the card expressing that the card starts and collapsed
     private var nextState: CardState {
         return cardVisible ? .collapsed : .expanded
     }
     
+    // Duration Animation of cardView
+    private var duration: TimeInterval!
+    
+    // Variable for average fraction value of cardView
+    private var averageFractionValue: CGFloat!
+    
     // Variable for card view controller
     private var cardViewController: CardViewController!
-    
-    // Variable for effects visual effect view
-    private var visualEffectView: UIVisualEffectView!
-    
+
     // Starting and end card heights will be determined later
     private var startCardHeight: CGFloat = 0
     private var endCardHeight: CGFloat = 0
@@ -42,89 +47,122 @@ final class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupCard()
+        hideCardViewWhenTappedAround()
     }
     
     private func setupCard() {
         // Setup starting and ending card height
+        startCardHeight = self.view.frame.height * 0.2
         endCardHeight = self.view.frame.height * 0.8
-        startCardHeight = self.view.frame.height * 0.3
-        
-        // Add Visual Effects View
-        visualEffectView = UIVisualEffectView()
-        visualEffectView.frame = self.view.frame
-        self.view.addSubview(visualEffectView)
+        averageFractionValue = 0.4
+        duration = 1.0
         
         // Add CardViewController xib to the bottom of the screen, clipping bounds so that the corners can be rounded
         cardViewController = CardViewController(nibName: "CardViewController", bundle: nil)
         self.addChild(cardViewController)
         self.view.addSubview(cardViewController.view)
-        cardViewController.view.frame = CGRect(x: 0, y: self.view.frame.height - startCardHeight, width: self.view.bounds.width, height: endCardHeight)
+        cardViewController.view.frame = CGRect(x: 0, y: self.view.frame.height - startCardHeight,
+                                               width: self.view.bounds.width, height: endCardHeight)
         cardViewController.view.clipsToBounds = true
         
         // Add tap and pan recognizers
-        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleCardTap))
         let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handleCardPan))
-        
-        cardViewController.handleArea.addGestureRecognizer(tapGestureRecognizer)
-        cardViewController.handleArea.addGestureRecognizer(panGestureRecognizer)
-    }
-    
-    // Handle tap gesture recognizer
-    @objc
-    private func handleCardTap(_ recognzier: UITapGestureRecognizer) {
-        switch recognzier.state {
-        // Animate card when tap finishes
-        case .ended:
-            animateTransitionIfNeeded(state: nextState, duration: 0.5)
-        default:
-            break
-        }
+        cardViewController.view.addGestureRecognizer(panGestureRecognizer)
     }
     
     // Handle pan gesture recognizer
     @objc
     private func handleCardPan(_ recognizer: UIPanGestureRecognizer) {
+        let translation = recognizer.translation(in: self.cardViewController.handleArea)
         switch recognizer.state {
         case .began:
             // Start animation if pan begins
-            startInteractiveTransition(state: nextState, duration: 0.5)
+            startInteractiveTransition(state: nextState)
         case .changed:
             // Update the translation according to the percentage completed
-            let translation = recognizer.translation(in: self.cardViewController.handleArea)
-            var fractionComplete = translation.y / endCardHeight
-            fractionComplete = cardVisible ? fractionComplete : -fractionComplete
-            updateInteractiveTransition(fractionCompleted: fractionComplete)
+            if let fractionComplete = calculateFractionComplete(translationY: translation.y) {
+                updateInteractiveTransition(fractionCompleted: fractionComplete)
+            }
         case .ended:
             // End animation when pan ends
-            continueInteractiveTransition()
+            if let fractionComplete = calculateFractionComplete(translationY: translation.y) {
+                if fractionComplete >= averageFractionValue {
+                    self.cardVisible = !self.cardVisible
+                }
+                continueInteractiveTransition(fractionCompleted: fractionComplete)
+            }
+        default:
+            break
+        }
+    }
+    
+    // Calculate fractionComplete when swipping cardview
+    private func calculateFractionComplete(translationY: CGFloat) -> CGFloat? {
+        guard validateCardViewDirection(translationY: translationY) else {
+            return nil
+        }
+        
+        var fractionComplete = translationY / (endCardHeight - startCardHeight)
+        fractionComplete = cardVisible ? fractionComplete : -fractionComplete
+        
+        if fractionComplete > 1 {
+            fractionComplete = 1
+        } else if fractionComplete < 0 {
+            fractionComplete = 0
+        }
+        
+        return fractionComplete
+    }
+    
+    // Validate cardview's direction
+    private func validateCardViewDirection(translationY: CGFloat) -> Bool {
+        if translationY < 0 && cardVisible { // avoid swipping down cardview when card is expanded
+            return false
+        } else if translationY > 0 && !cardVisible { // avoid swipping up cardview when card is collapsed
+            return false
+        }
+        return true
+    }
+    
+    private func hideCardViewWhenTappedAround() {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissCardView(_:)))
+        tap.cancelsTouchesInView = true
+        self.imageView.addGestureRecognizer(tap)
+        self.imageView.isUserInteractionEnabled = true
+    }
+    
+    @objc
+    private func dismissCardView(_ recognizer: UITapGestureRecognizer) {
+        switch recognizer.state {
+        // Animate card when tap finishes
+        case .ended:
+            if nextState == .collapsed {
+                animateTransitionIfNeeded(state: .collapsed)
+            }
         default:
             break
         }
     }
     
     // Animate transistion function
-    private func animateTransitionIfNeeded(state: CardState, duration: TimeInterval) {
+    private func animateTransitionIfNeeded(state: CardState) {
         // Check if frame animator is empty
         if runningAnimations.isEmpty {
             // Create a UIViewPropertyAnimator depending on the state of the popover view
             // The damping ratio to apply to the initial acceleration and oscillation.
-            let frameAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: 1) {
+            let frameAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: 0.75) {
                 switch state {
                 case .expanded:
-                    // If expanding set popover y to the ending height and blur background
+                    // if expanded set popover y to the ending height
                     self.cardViewController.view.frame.origin.y = self.view.frame.height - self.endCardHeight
-                    self.visualEffectView.effect = UIBlurEffect(style: .dark)
-                    
                 case .collapsed:
-                    // If collapsed set popover y to the starting height and remove background blur
+                    // If collapsed set popover y to the starting height
                     self.cardViewController.view.frame.origin.y = self.view.frame.height - self.startCardHeight
-                    self.visualEffectView.effect = nil
                 }
             }
             
-            // Complete animation frame
+            // Execute when animation frame is completed
             frameAnimator.addCompletion { _ in
-                self.cardVisible = !self.cardVisible
                 self.runningAnimations.removeAll()
             }
             
@@ -140,7 +178,6 @@ final class MainViewController: UIViewController {
                 case .expanded:
                     // If the view is expanded set the corner radius to 12
                     self.cardViewController.view.layer.cornerRadius = 12
-                    
                 case .collapsed:
                     // If the view is collapsed set the corner radius to 0
                     self.cardViewController.view.layer.cornerRadius = 0
@@ -156,10 +193,10 @@ final class MainViewController: UIViewController {
     }
     
     // Function to start interactive animations when view is dragged
-    private func startInteractiveTransition(state: CardState, duration: TimeInterval) {
+    private func startInteractiveTransition(state: CardState) {
         // If animation is empty start new animation
         if runningAnimations.isEmpty {
-            animateTransitionIfNeeded(state: state, duration: duration)
+            animateTransitionIfNeeded(state: state)
         }
         
         // For each animation in runningAnimations
@@ -170,7 +207,7 @@ final class MainViewController: UIViewController {
         }
     }
     
-    // Funtion to update transition when view is dragged
+    // Function to update transition when view is dragged
     private func updateInteractiveTransition(fractionCompleted: CGFloat) {
         // For each animation in runningAnimations
         for animator in runningAnimations {
@@ -179,8 +216,18 @@ final class MainViewController: UIViewController {
         }
     }
     
-    // Function to continue an interactive transisiton
-    private func continueInteractiveTransition() {
+    // Function to continue an interactive transititon
+    private func continueInteractiveTransition(fractionCompleted: CGFloat) {
+        if fractionCompleted < averageFractionValue {
+            self.runningAnimations.forEach {
+                $0.isReversed = true
+            }
+        } else {
+            self.runningAnimations.forEach {
+                $0.isReversed = false
+            }
+        }
+    
         // For each animation in runningAnimations
         for animator in runningAnimations {
             // Continue the animation forwards or backwards
