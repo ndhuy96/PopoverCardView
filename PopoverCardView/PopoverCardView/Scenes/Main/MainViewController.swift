@@ -78,6 +78,7 @@ final class MainViewController: UIViewController {
         case .began:
             // Start animation if pan begins
             startInteractiveTransition(state: nextState)
+            print("huybnd: ", nextState)
         case .changed:
             // Update the translation according to the percentage completed
             if let fractionComplete = calculateFractionComplete(translationY: translation.y) {
@@ -138,6 +139,7 @@ final class MainViewController: UIViewController {
         case .ended:
             if nextState == .collapsed {
                 animateTransitionIfNeeded(state: .collapsed)
+                cardVisible = false
             }
         default:
             break
