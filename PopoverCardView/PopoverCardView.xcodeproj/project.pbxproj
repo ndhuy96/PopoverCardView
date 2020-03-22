@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04038DFA2423B1B100B2A651 /* Pannable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04038DF72423B1B100B2A651 /* Pannable.swift */; };
+		04038DFB2423B1B100B2A651 /* BottomSheetController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04038DF82423B1B100B2A651 /* BottomSheetController.swift */; };
+		04038DFC2423B1B100B2A651 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04038DF92423B1B100B2A651 /* Extensions.swift */; };
+		0469CCAD2424754400F40191 /* SheetPositions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0469CCAC2424754400F40191 /* SheetPositions.swift */; };
+		0469CCAF24247BFB00F40191 /* Positioning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0469CCAE24247BFB00F40191 /* Positioning.swift */; };
 		0485CCDD22CF8E9500BFB827 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0485CCDC22CF8E9500BFB827 /* AppDelegate.swift */; };
 		0485CCE222CF8E9500BFB827 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0485CCE022CF8E9500BFB827 /* Main.storyboard */; };
 		0485CCE422CF8E9600BFB827 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0485CCE322CF8E9600BFB827 /* Assets.xcassets */; };
@@ -17,6 +22,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		04038DF72423B1B100B2A651 /* Pannable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pannable.swift; sourceTree = "<group>"; };
+		04038DF82423B1B100B2A651 /* BottomSheetController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BottomSheetController.swift; sourceTree = "<group>"; };
+		04038DF92423B1B100B2A651 /* Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		0469CCAC2424754400F40191 /* SheetPositions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetPositions.swift; sourceTree = "<group>"; };
+		0469CCAE24247BFB00F40191 /* Positioning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Positioning.swift; sourceTree = "<group>"; };
 		0485CCD922CF8E9500BFB827 /* PopoverCardView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PopoverCardView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0485CCDC22CF8E9500BFB827 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0485CCE122CF8E9500BFB827 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -39,6 +49,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		04038DF62423B19100B2A651 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				04038DF82423B1B100B2A651 /* BottomSheetController.swift */,
+				04038DF92423B1B100B2A651 /* Extensions.swift */,
+				04038DF72423B1B100B2A651 /* Pannable.swift */,
+				0469CCAC2424754400F40191 /* SheetPositions.swift */,
+				0469CCAE24247BFB00F40191 /* Positioning.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		0485CCD022CF8E9500BFB827 = {
 			isa = PBXGroup;
 			children = (
@@ -58,6 +80,7 @@
 		0485CCDB22CF8E9500BFB827 /* PopoverCardView */ = {
 			isa = PBXGroup;
 			children = (
+				04038DF62423B19100B2A651 /* Components */,
 				0485CCF022CF9AF000BFB827 /* App */,
 				0485CCF122CF9AF500BFB827 /* Scenes */,
 				0485CCE322CF8E9600BFB827 /* Assets.xcassets */,
@@ -183,8 +206,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				0485CCEF22CF940100BFB827 /* MainViewController.swift in Sources */,
+				04038DFC2423B1B100B2A651 /* Extensions.swift in Sources */,
+				04038DFB2423B1B100B2A651 /* BottomSheetController.swift in Sources */,
 				0485CCDD22CF8E9500BFB827 /* AppDelegate.swift in Sources */,
+				04038DFA2423B1B100B2A651 /* Pannable.swift in Sources */,
 				0485CCF722D070BF00BFB827 /* CardViewController.swift in Sources */,
+				0469CCAD2424754400F40191 /* SheetPositions.swift in Sources */,
+				0469CCAF24247BFB00F40191 /* Positioning.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
